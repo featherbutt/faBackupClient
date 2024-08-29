@@ -1,0 +1,3 @@
+[submodule "falocalrepo"]
+	path = falocalrepo
+	url = https://github.com/featherbutt/FALocalRepo
