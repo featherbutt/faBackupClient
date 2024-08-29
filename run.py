@@ -2,8 +2,8 @@ import argparse
 import subprocess
 
 parser = argparse.ArgumentParser(
-                    prog='Furaffinity Backup Client',
-                    description='Creates a backup of Furaffinity.')
+                    prog='run.py',
+                    description='Furaffinity Backup Client Runner')
 
 parser.add_argument('--dbDir', type=str, help='Directory to store databases', required=True)
 parser.add_argument('--url', type=str, help='Server URL', required=True)
@@ -30,4 +30,4 @@ subprocess.run(['docker', 'build', '-t', 'fascraper', '.'])
 subprocess.run(['docker', 'run',
                 '-v', f'{args.dbDir}:/app/dbs',
                 'fascraper',
-                'python', 'client.py', args.url, args.secret, args.a, args.b, args.batchSize])
+                'python', 'client.py', args.url, args.secret, args.a, args.b, str(args.batchSize)])
