@@ -28,7 +28,7 @@ subprocess.run(['docker', 'build', '-t', 'fascraper', '.'])
 
 # Run the dockerfile
 
-env_args = [arg for env in args.env for arg in ['-e', env]]
+env_args = [arg for env in args.env for arg in ['-e', env]] if args.env else []
 
 subprocess.run(['docker', 'run',
                 '-v', f'{args.dbDir}:/app/dbs',
