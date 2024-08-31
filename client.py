@@ -80,18 +80,23 @@ def uploadRange(min, max):
 
     initDb(dbName)
     
-    newMax = max
-    RETRIES = 2
-    for i in range(RETRIES):
-        result = subprocess.run(['falocalrepo', 'download', 'range', '--database', dbName, min, newMax])
+    newMin = min
+    RETRIES = 3
+    attempt = 1
+    while attempt <= RETRIES:
+        result = subprocess.run(['falocalrepo', 'download', 'range', '--database', dbName, newMin, max])
         print(result.stderr)
         print(result.stdout)
         if result.returncode == 0:
             break
         
-        newMax = get_last_id(dbName)
-        if newMax is None:
-            newMax = max
+        lastId = str(get_last_id(dbName))
+        if lastId is None:
+            lastId = min
+        if lastId == newMin:
+            attempt += 1
+        else:
+            attempt = 1
     else:
         print(f"Failed to download {min} to {max}")
         return False
