@@ -36,7 +36,7 @@ subprocess.run(['docker', 'build', '-t', 'fascraper', '.'])
 # Run the dockerfile
 
 env_args = [arg for env in args.env for arg in ['-e', env]] if args.env else []
-if args.delay != "":
+if args.delay is not None:
     env_args += ['-e', f'FALR_DELAY={args.delay}']
 run('docker', 'run',
                 '-v', f'{args.dbDir}:/app/dbs',
