@@ -5,6 +5,7 @@
 
 import sys
 import requests
+from requests.exceptions import SSLError
 import os
 import string
 import random
@@ -26,11 +27,20 @@ def get(url: str):
     return response.json()
 
 def post(url: str, data: dict):
-    response = requests.post(url, data=data, headers=headers)
-    while response.status_code != 200:
-        print(f"Failed to post {url}, sleeping for 30 seconds")
-        time.sleep(30)
-        response = requests.post(url, data=data, headers=headers)
+    while True:
+        try:
+            response = requests.post(url, data=data, headers=headers)
+            if response.status_code != 200:
+                print(f"Failed to post {url}, sleeping for 30 seconds")
+                time.sleep(30)
+                continue
+        except SSLError:
+                print(f"Failed to post {url}, sleeping for 30 seconds")
+                time.sleep(30)
+                continue
+        break
+
+
 
 
 def gen_rand_char() -> str:
