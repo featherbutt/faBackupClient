@@ -21,8 +21,13 @@ args = parser.parse_args()
 # Parse command line args
 # Initialize submodules
 
-subprocess.run(['git', 'submodule', 'init'])
-subprocess.run(['git', 'submodule', 'update'])
+def run(*args):
+    process = subprocess.run(args)
+    process.check_returncode()
+
+run('git', 'pull')
+run('git', 'submodule', 'init')
+run('git', 'submodule', 'update')
 
 # Build the dockerfile if it doesn't exist
 
@@ -31,11 +36,10 @@ subprocess.run(['docker', 'build', '-t', 'fascraper', '.'])
 # Run the dockerfile
 
 env_args = [arg for env in args.env for arg in ['-e', env]] if args.env else []
-print(f"delay: {args.delay}")
 if args.delay != "":
     env_args += ['-e', f'FALR_DELAY={args.delay}']
-subprocess.run(['docker', 'run',
+run('docker', 'run',
                 '-v', f'{args.dbDir}:/app/dbs',
                 *env_args,
                 'fascraper',
-                'python', 'client.py', args.url, args.secret, args.a, args.b, str(args.batchSize)])
+                'python', 'client.py', args.url, args.secret, args.a, args.b, str(args.batchSize))
