@@ -50,6 +50,7 @@ WORKDIR $PYSETUP_PATH
 COPY poetry.lock pyproject.toml ./
 
 COPY falocalrepo/ ./falocalrepo/
+COPY faapi/ ./faapi/
 
 # install runtime deps - uses $POETRY_VIRTUALENVS_IN_PROJECT internally
 RUN poetry install --no-dev

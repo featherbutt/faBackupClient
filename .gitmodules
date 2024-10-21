@@ -1,3 +1,6 @@
 [submodule "falocalrepo"]
 	path = falocalrepo
 	url = https://github.com/featherbutt/FALocalRepo
+[submodule "faapi"]
+	path = faapi
+	url = https://github.com/featherbutt/faapi
