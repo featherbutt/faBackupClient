@@ -140,20 +140,21 @@ def uploadArtist(artist):
         post(f'https://{hostName}/upload/artist/{artist}', data=f)
         print(f"Uploaded artist {artist}")
     
-    
-while True:
-    nextBatch = get(f'https://{hostName}/nextBatch/{batchSize}')
-    if nextBatch["done"]:
-        break
-    
-    print(nextBatch)
-    match nextBatch["type"]:
-        case "list":
-            uploadSubmissions(nextBatch["ids"])
-        case "range":
-            uploadRange(str(nextBatch["min"]), str(nextBatch["max"]))
-        case "artist":
-            uploadArtist(nextBatch["artist"])
-        case _:
-            print("Unknown batch type")
+
+if __name__ == "__main__":
+    while True:
+        nextBatch = get(f'https://{hostName}/nextBatch/{batchSize}')
+        if nextBatch["done"]:
             break
+        
+        print(nextBatch)
+        match nextBatch["type"]:
+            case "list":
+                uploadSubmissions(nextBatch["ids"])
+            case "range":
+                uploadRange(str(nextBatch["min"]), str(nextBatch["max"]))
+            case "artist":
+                uploadArtist(nextBatch["artist"])
+            case _:
+                print("Unknown batch type")
+                break

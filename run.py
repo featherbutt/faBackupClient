@@ -5,6 +5,8 @@ parser = argparse.ArgumentParser(
                     description='Furaffinity Backup Client Runner')
 
 parser.add_argument('--dbDir', type=str, help='Directory to store databases', required=True)
+parser.add_argument('--getFiles', type=bool, help='Whether to download files', default=False)
+
 parser.add_argument('--url', type=str, help='Server URL', required=True)
 parser.add_argument('--secret', type=str, help='Server authorization token', required=True)
 parser.add_argument('-a', type=str, help='Furaffinity cookie "a"', required=True)
@@ -38,8 +40,10 @@ subprocess.run(['docker', 'build', '-t', 'fascraper', '.'])
 env_args = [arg for env in args.env for arg in ['-e', env]] if args.env else []
 if args.delay is not None:
     env_args += ['-e', f'FALR_DELAY={args.delay}']
+if args.getFiles:
+    env_args += ['-e', 'GET_FILES=1']
 run('docker', 'run', '--rm',
-                '-v', f'{args.dbDir}:/app/dbs',
+                '-v', f'{args.dbDir}:/app/dbs',                
                 *env_args,
                 'fascraper',
                 'python', 'client.py', args.url, args.secret, args.a, args.b, str(args.batchSize))
