@@ -38,8 +38,8 @@ subprocess.run(['docker', 'build', '-t', 'fascraper', '.'])
 env_args = [arg for env in args.env for arg in ['-e', env]] if args.env else []
 if args.delay is not None:
     env_args += ['-e', f'FALR_DELAY={args.delay}']
-run('docker', 'run',
-                '-v', '--rm', f'{args.dbDir}:/app/dbs',
+run('docker', 'run', '--rm',
+                '-v', f'{args.dbDir}:/app/dbs',
                 *env_args,
                 'fascraper',
                 'python', 'client.py', args.url, args.secret, args.a, args.b, str(args.batchSize))
