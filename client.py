@@ -18,12 +18,18 @@ _, hostName, secret, a, b, batchSize = sys.argv
 headers = {'Authorization': f"Bearer {secret}"}
 
 def get(url: str):
-    response = requests.get(url, headers=headers)
-    while response.status_code != 200:
-        print(f"Failed to get {url}, sleeping for 30 seconds")
-        time.sleep(30)
-        response = requests.get(url, headers=headers)
-
+    while True:
+        try:
+            response = requests.get(url, headers=headers)
+            if response.status_code != 200:
+                print(f"Failed to post {url}, sleeping for 30 seconds")
+                time.sleep(30)
+                continue
+        except:
+                print(f"Failed to post {url}, sleeping for 30 seconds")
+                time.sleep(30)
+                continue
+        break
     return response.json()
 
 def post(url: str, data: dict):
@@ -34,7 +40,7 @@ def post(url: str, data: dict):
                 print(f"Failed to post {url}, sleeping for 30 seconds")
                 time.sleep(30)
                 continue
-        except SSLError:
+        except:
                 print(f"Failed to post {url}, sleeping for 30 seconds")
                 time.sleep(30)
                 continue
