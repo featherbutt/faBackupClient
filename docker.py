@@ -1,11 +1,17 @@
 import argparse
 import subprocess
+import os
 
 def run(*args):
         process = subprocess.run(args)
         process.check_returncode()
 
 def run_docker(args):
+    if args[0] == 'tor':
+         return run_tor_scraper(args[1:])
+    run_metadata_scraper(args)
+
+def run_metadata_scraper(args):
     parser = argparse.ArgumentParser(
                         description='Furaffinity Backup Client Runner')
 
@@ -44,3 +50,48 @@ def run_docker(args):
                     *env_args,
                     'fascraper',
                     'python', 'client.py', args.url, args.secret, args.a, args.b, str(args.batchSize))
+    
+def run_tor_scraper(args):
+    parser = argparse.ArgumentParser(
+                        description='Furaffinity Tor Backup Runner')
+
+    parser.add_argument('--ipfsDir', type=str, help='Directory to store ipfs repo', default='./ipfs')
+    
+    parser.add_argument('--url', type=str, help='Server URL', required=True)
+    parser.add_argument('--port', type=int, help='Server HTTP port', required=True)
+    parser.add_argument('--replicas', type=int, help='number of scrapers to run in parallel', default=1)
+    parser.add_argument('--swarm', type=str, help='Swarm key', required=True)
+    parser.add_argument('--peer_id', type=str, help='Bootstrap peer ID', required=True)
+    parser.add_argument('--secret', type=str, help='Server authorization token', required=True)
+    parser.add_argument('--wait', type=bool, help='Dont run the scraper', default=False)
+    
+    parser.add_argument('-e', '--env', type=str, nargs="*", help='additional environment variables')
+
+    args = parser.parse_args(args)
+
+    with open(f'{args.ipfsDir}/data/swarm.key', 'w') as f:
+         f.write(
+f"""/key/swarm/psk/1.0.0/
+/base16/
+{args.swarm}""")
+
+    # Build the containers if they don't exist
+
+    env = {
+        **os.environ,
+        'IPFS_DIR': args.ipfsDir,
+        'SECRET': args.secret,
+        'HOSTNAME': args.url,
+        'PORT': str(args.port),
+        'PRIVATE_PEER_ID': args.peer_id,
+        'REPLICAS': str(args.replicas)
+    }
+
+    if args.wait:
+        env['WAIT'] = '1'
+
+    subprocess.run(['docker', 'compose', 'build'], env=env)
+
+    # Run the dockerfile
+
+    subprocess.run(['docker', 'compose', 'up'], env=env)
