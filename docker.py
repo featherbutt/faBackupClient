@@ -1,6 +1,7 @@
 import argparse
 import subprocess
 import os
+from pathlib import Path
 
 def run(*args):
         process = subprocess.run(args)
@@ -69,6 +70,7 @@ def run_tor_scraper(args):
 
     args = parser.parse_args(args)
 
+    Path(f'{args.ipfsDir}/data').mkdir(parents=True, exist_ok=True)
     with open(f'{args.ipfsDir}/data/swarm.key', 'w') as f:
          f.write(
 f"""/key/swarm/psk/1.0.0/
