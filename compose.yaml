@@ -31,4 +31,5 @@ services:
       - HOSTNAME=${HOSTNAME}:${PORT}
       - SECRET=${SECRET}
       - PRIVATE_PEER_ID=${PRIVATE_PEER_ID}
+      - SOURCE=${SOURCE}
       - WAIT

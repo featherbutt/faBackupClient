@@ -9,7 +9,9 @@ def run(*args):
 
 def run_docker(args):
     if args[0] == 'tor':
-         return run_tor_scraper(args[1:])
+         return run_tor_scraper('tor', args[1:])
+    if args[0] == 'fa':
+         return run_tor_scraper('fa', args[1:])
     run_metadata_scraper(args)
 
 def run_metadata_scraper(args):
@@ -51,8 +53,8 @@ def run_metadata_scraper(args):
                     *env_args,
                     'fascraper',
                     'python', 'client.py', args.url, args.secret, args.a, args.b, str(args.batchSize))
-    
-def run_tor_scraper(args):
+
+def run_tor_scraper(source, args):
     parser = argparse.ArgumentParser(
                         description='Furaffinity Tor Backup Runner')
 
@@ -86,7 +88,8 @@ f"""/key/swarm/psk/1.0.0/
         'HOSTNAME': args.url,
         'PORT': str(args.port),
         'PRIVATE_PEER_ID': args.peer_id,
-        'REPLICAS': str(args.replicas)
+        'REPLICAS': str(args.replicas),
+        'SOURCE': source,
     }
 
     if args.wait:

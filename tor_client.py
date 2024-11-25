@@ -23,8 +23,11 @@ jsonHeaders ={
 }
 
 proxies = {
-	'http' : "socks5h://tor:9050",
-	'https' : "socks5h://tor:9050"
+	'tor': {
+		'http' : "socks5h://tor:9050",
+		'https' : "socks5h://tor:9050"
+	}, 
+	'fa': None
 }
 
 def getCommand(url: str, headers=headers, **kwargs):
@@ -36,10 +39,12 @@ def getCommand(url: str, headers=headers, **kwargs):
 			continue
 		return response.json()
 	
-def get(url: str, headers=headers, **kwargs):
+def get(url: str, headers=headers, allow404=False, **kwargs):
 	while True:
 		response = try_until_success(requests.get, f"get {url}")(url, **kwargs)
 		if response.status_code != 200:
+			if allow404 and response.status_code == 404:
+				return response
 			print(f"Failed to get {url}, sleeping for 30 seconds: {response}")
 			time.sleep(30)
 			continue
@@ -110,8 +115,16 @@ def mergeDirectories(mergePath, *hashes):
 	try_until_success(client.files.rm, "rm 108",)(mergePath, recursive=True)
 	try_until_success(client.files.mv, "mv 109")(f"/scratch/{nonce}", mergePath, opts={"parents":True})
 
-start_time = time.time_ns()
-if __name__ == "__main__":
+def get_url(source, artist, path, sid, baseNameEncoded):
+	match source:
+		case 'tor':
+			return f'http://g6jy5jkx466lrqojcngbnksugrcfxsl562bzuikrka5rv7srgguqbjid.onion/fa/{artist}/{path}/{baseNameEncoded}'
+		case 'fa':
+			return f'https://d.facdn.net/art/{artist}/{sid}/{baseNameEncoded}'
+		#'fa2': 'https://d.furaffinity.net/art/{artist}/{sid}/{baseNameEncoded}',
+	
+def run(source):
+	proxy = proxies[source]
 	if os.environ.get('WAIT') is not None:
 		exit(0)
 	tor_time_ns = 0
@@ -155,9 +168,17 @@ if __name__ == "__main__":
 					continue
 			count += 1
 			baseNameEncoded = urllib.parse.quote(baseName, safe='/', encoding=None, errors=None)
-			print(f'{count}: http://g6jy5jkx466lrqojcngbnksugrcfxsl562bzuikrka5rv7srgguqbjid.onion/fa/{artist}/{path}/{baseNameEncoded}')
+			sid = baseName.split('.')[0]
+			url = get_url(source, artist, path, sid, baseNameEncoded)
+			print(f'{count}: {url}')
 			tor_start_time = time.time_ns()
-			response = get(f'http://g6jy5jkx466lrqojcngbnksugrcfxsl562bzuikrka5rv7srgguqbjid.onion/fa/{artist}/{path}/{baseNameEncoded}', proxies=proxies)
+			if proxy:
+				response = get(url, proxies=proxy)
+			else:
+				response = get(url, allow404 = True)
+				if response.status_code == 404:
+					print(f"404 for {url}")
+					continue
 			tor_time_ns += time.time_ns() - tor_start_time
 			responseFile = io.BytesIO(response.content)
 			ipfs_start_time = time.time_ns()
@@ -186,5 +207,12 @@ if __name__ == "__main__":
 		newHash = try_until_success(client.files.stat, "stat 156")(folderPath, opts={"hash":True})['Hash']
 		print(f"new hash for {artist}: {newHash}")
 		
+		if source == 'tor':
+			post(f'https://{hostName}/finishTorArtist/{artist}', {'newHash': newHash, 'id': os.environ['PRIVATE_PEER_ID']})
+		else:
+			post(f'https://{hostName}/updateTorArtist/{artist}', {'newHash': newHash, 'id': os.environ['PRIVATE_PEER_ID']})
+			
 
-		post(f'https://{hostName}/finishTorArtist/{artist}', {'newHash': newHash, 'id': os.environ['PRIVATE_PEER_ID']})
+start_time = time.time_ns()
+if __name__ == "__main__":
+	run(os.environ['SOURCE'])
